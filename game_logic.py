@@ -8,10 +8,6 @@ def get_hand_side(handedness_label):
     return handedness_label
 
 
-def _finger_is_up(hand_landmarks, tip_index, pip_index):
-    return hand_landmarks[tip_index].y < hand_landmarks[pip_index].y
-
-
 def _finger_vertical_state(hand_landmarks, tip_index, reference_index, margin=0.03):
     tip = hand_landmarks[tip_index]
     reference = hand_landmarks[reference_index]
@@ -34,39 +30,28 @@ def _thumb_extended(hand_landmarks, margin=0.02):
     return thumb_tip_distance > thumb_mcp_distance + margin
 
 
-def _finger_tip_index(finger_name):
-    return {
-        "index": 8,
-        "thumb": 4,
-        "pinky": 20,
-    }.get(finger_name)
-
-
-def _is_touching_wrist(hand_landmarks, finger_name, wrist_landmark, threshold=0.10):
-    tip_index = _finger_tip_index(finger_name)
-    if tip_index is None or wrist_landmark is None:
-        return False
-
-    tip = hand_landmarks[tip_index]
-    dx = tip.x - wrist_landmark.x
-    dy = tip.y - wrist_landmark.y
-    return math.hypot(dx, dy) <= threshold
-
-
 def classify_right_hand_gesture(hand_landmarks):
     index_up = _finger_vertical_state(hand_landmarks, 8, 6) == "up"
     middle_up = _finger_vertical_state(hand_landmarks, 12, 10) == "up"
     ring_up = _finger_vertical_state(hand_landmarks, 16, 14) == "up"
     pinky_up = _finger_vertical_state(hand_landmarks, 20, 18) == "up"
-
+    thumb_up = _thumb_extended(hand_landmarks)
     thumb_tip = hand_landmarks[4]
     thumb_ip = hand_landmarks[3]
     thumb_side = abs(thumb_tip.x - thumb_ip.x) > 0.04 and thumb_tip.y < hand_landmarks[2].y + 0.18
 
-    if index_up and thumb_side and not middle_up and not ring_up and not pinky_up:
+    if index_up and middle_up and ring_up and pinky_up and thumb_up:
+        return {
+            "mode": "DEFESA",
+            "combo": "mao aberta",
+            "element": None,
+            "action": "ESCUDO ATIVO",
+        }
+
+    if thumb_side and pinky_up and not index_up and not middle_up and not ring_up:
         return {
             "mode": "PODER",
-            "combo": "indicador + dedao",
+            "combo": "dedao + dedinho",
             "element": "TERRA",
             "action": "TERRA CASTED",
         }
@@ -95,7 +80,7 @@ def classify_right_hand_gesture(hand_landmarks):
     }
 
 
-def classify_left_hand_target(hand_landmarks, frame_width):
+def classify_left_hand_target(hand_landmarks):
     wrist = hand_landmarks[0]
     index_tip = hand_landmarks[8]
 
@@ -129,7 +114,3 @@ def classify_left_hand_target(hand_landmarks, frame_width):
         "action": "Mira no centro",
         "angle": angle,
     }
-
-
-def summarize_hand(hand_side, gesture_data):
-    return f"{hand_side}: {gesture_data['action']}"

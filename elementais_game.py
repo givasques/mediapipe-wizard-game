@@ -165,7 +165,7 @@ def _draw_start_screen(scene):
     cv2.rectangle(overlay, (0, 0), (w, h), (0, 0, 0), -1)
     cv2.addWeighted(overlay, 0.62, scene, 0.38, 0, scene)
 
-    title = "ELEMENTALS"
+    title = "ELEMENTAIS"
     subtitle = "Use as maos para mirar, atacar e defender"
     hint = "Clique em INICIAR para comecar"
     font = cv2.FONT_HERSHEY_SIMPLEX

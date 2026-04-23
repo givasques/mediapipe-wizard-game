@@ -1,0 +1,6 @@
+# Python cache
+__pycache__/
+
+# Game runtime data
+hand_landmarker.task
+high_score.txt
